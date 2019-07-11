@@ -1,2 +1,3 @@
 # BMAX_Connector
-Blender &lt;> 3DSMAX FBX connector
+BMAX_3DSMAX.MZP - Install in 3dsmax dragNdrop into max.
+BMAX_Blender.zip - Install as blender addon in blender preferences.
