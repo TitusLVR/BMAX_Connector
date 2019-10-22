@@ -2,9 +2,18 @@
 try(destroydialog BMAX_Rollout)catch()
 rollout BMAX_Rollout "BMAX Connector" 
 (
-	button btn_1 "Send to Blender"  pos:[8,30] width:144 height:40 align:#left tooltip:"Export model to Blender"
-	button btn_2 "Get from Blender" pos:[8,70] width:144 height:40 align:#left tooltip:"Import model from Blender"
-	spinner spn_1 "Global scale     " pos:[8,8] range:[0,1000000.0,(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "GlobalScale" "Scale" as float)] type:#float fieldWidth:60 toolTip:"Import/Export Global Scale" pos:[7,35]	
+	groupBox grp1 "Import/Export:" pos:[2,2] width:156 height:124 align:#left
+	button btn_1 "Send to Blender"  pos:[8,40] width:144 height:40 align:#left tooltip:"Export model to Blender"
+	button btn_2 "Get from Blender" pos:[8,80] width:144 height:40 align:#left tooltip:"Import model from Blender"
+	spinner spn_1 "Global scale     " pos:[8,20] range:[0,1000000.0,(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "GlobalScale" "Scale" as float)] type:#float fieldWidth:60 toolTip:"Import/Export Global Scale" pos:[7,35]	
+	
+	groupBox grp2 "Add modifiers:" pos:[2,130] width:156 height:80 align:#left	
+	checkbox ckb_1 " TurnToPoly" pos:[8,150] checked:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "TurnToPoly" as booleanClass) tooltip:"Add TurnToPoly modifier after import"
+	checkbox ckb_2 " Smooth" pos:[8,170] checked:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "Smooth" as booleanClass) tooltip:"Add Smooth modifier after import"
+	spinner spn_2 "" pos:[95,170] range:[0,180.0,(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "SmoothAngle" as float)] tooltip:"AutoSmooth" type:#float fieldWidth:45 scale:1
+	checkbox ckb_3 " Convert to Poly" pos:[8,190] checked:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "ConvertToPoly" as booleanClass) tooltip:"Convert to EditablePoly.Collapse stack."
+	
+	
 	
 	local BMAX_posX =  getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Position" "PosX" as float 	
 	local BMAX_posY =  getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Position" "PosY" as float	
@@ -31,9 +40,15 @@ rollout BMAX_Rollout "BMAX Connector"
 	(
 		local expObjs = #()
 		local BMAX_GlobalScale = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "GlobalScale" "Scale" as float
-		expObjs = for o in selection where (isKindOf o GeometryClass and canConvertTo o Editable_Mesh) collect o
+		expObjs = for o in selection where (isKindOf o.baseObject editable_poly) collect o
 		--max select none
+		for o in expObjs do 
+			(			  
+			  polyop.collapseDeadStructs o
+			  o.DeleteIsoMapVerts()				
+			)
 		select expObjs
+		
 		if expObjs.count != 0 then
 			(			
 				pluginManager.loadClass FBXEXP
@@ -109,13 +124,17 @@ rollout BMAX_Rollout "BMAX Connector"
 			)			
 		else
 			(
-				messageBox "Selection is empty! Please select some objects." title:"Warning" beep:off 
+				messageBox "Selection is empty! Please select some Editable poly objects." title:"Warning" beep:off 
 			)
 	)
 	
 	fn BMAX_Import fileName = 
 	(
 		local BMAX_GlobalScale = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "GlobalScale" "Scale" as float	
+		local BMAX_TurnToPoly = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "TurnToPoly" as booleanClass	
+		local BMAX_Smooth = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "Smooth" as booleanClass
+		local BMAX_SmoothAngle = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "SmoothAngle" as float		
+		local BMAX_ConvertToPoly = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "ConvertToPoly" as booleanClass	
 		
 		pluginManager.loadClass FBXIMP			
 		FBXImporterSetParam "Mode" #create
@@ -147,7 +166,51 @@ rollout BMAX_Rollout "BMAX Connector"
 			
 		importFile fileName #noprompt usage:FBXIMP
 		
-		for o in selection where (isKindOf o GeometryClass and canConvertTo o Editable_Mesh) do (o.wirecolor = (color 0 0 0))
+		
+		B_Objs = for o in selection where (isKindOf o GeometryClass and canConvertTo o Editable_Mesh) collect o
+		if B_Objs.count != 0 do
+		(
+			for o in B_Objs do (o.wirecolor = (color 0 0 0))
+			if BMAX_TurnToPoly == True do
+			(
+				for o in B_Objs do 
+				(
+					addModifier o (Turn_to_Poly())
+				)
+			)
+			if BMAX_Smooth == true do
+			(
+				if BMAX_SmoothAngle == 0 then
+				(
+					for o in B_Objs do 
+					(
+						addModifier o (Smooth())
+						--for m in o.modifiers where classof m == Smooth do (m.smoothingBits = 1)
+						o.modifiers[#Smooth].smoothingBits = 1
+					)
+				)
+				else
+				(
+					for o in B_Objs do 
+					(
+						addModifier o (Smooth())
+						--for m in o.modifiers where classof m == Smooth do (m.smoothingBits = 1)
+						o.modifiers[#Smooth].autosmooth = true
+						o.modifiers[#Smooth].preventIndirect = false
+						o.modifiers[#Smooth].threshold = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "SmoothAngle" as float
+						
+					)					
+				)
+			)
+			if BMAX_ConvertToPoly == True do
+			(
+				for o in B_Objs do 
+				(
+					convertToPoly o
+				)
+			)
+		)
+		
 	)	
 	
 	fn BMAX_Init = 
@@ -210,6 +273,27 @@ rollout BMAX_Rollout "BMAX Connector"
 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "GlobalScale" "Scale" ((spn_1.value) as string)							
 	)
 	
+	on ckb_1 changed state do 
+	(
+		setINISetting ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "TurnToPoly" ((ckb_1.state) as string)							
+	)
+	
+	on ckb_2 changed state do 
+	(
+		setINISetting ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "Smooth" ((ckb_2.state) as string)							
+	)
+	
+	on spn_2 changed val do
+	(
+		setINISetting ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "SmoothAngle" ((spn_2.value) as string)							
+	)
+	
+	on ckb_3 changed state do 
+	(
+		setINISetting ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "ConvertToPoly" ((ckb_3.state) as string)							
+	)
+	
+	
 	on BMAX_Rollout close do 
 	(	
 		NewWinPos = getDialogpos BMAX_Rollout		
@@ -233,6 +317,6 @@ rollout BMAX_Rollout "BMAX Connector"
 	)
 )
 
-createDialog BMAX_Rollout 160 120 style:#(#style_titlebar, #style_sysmenu, #style_toolwindow)
+createDialog BMAX_Rollout 160 215 style:#(#style_titlebar, #style_sysmenu, #style_toolwindow)
 
 
