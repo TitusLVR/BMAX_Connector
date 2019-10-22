@@ -51,8 +51,7 @@ def BMAX_Export():
     global_scale = bpy.context.preferences.addons['BMAX_Connector'].preferences.global_scale
     bpy.ops.export_scene.fbx(filepath = temp_file_blender,
                                  check_existing=True,
-                                 filter_glob="*.fbx",
-                                 ui_tab='MAIN', 
+                                 filter_glob="*.fbx",                                  
                                  use_selection=True, 
                                  use_active_collection=False, 
                                  global_scale=global_scale, 
@@ -108,8 +107,7 @@ def BMAX_Import():
     if os.path.isfile(temp_file_max) == True: 
         bpy.ops.import_scene.fbx(filepath=temp_file_max, 
                                          directory="", 
-                                         filter_glob="*.fbx", 
-                                         ui_tab='MAIN', 
+                                         filter_glob="*.fbx",
                                          use_manual_orientation=False, 
                                          global_scale=global_scale, 
                                          bake_space_transform=False, 
