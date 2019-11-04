@@ -1,18 +1,30 @@
---BMAX script version.010
+--BMAX script version.012
 try(destroydialog BMAX_Rollout)catch()
 rollout BMAX_Rollout "BMAX Connector" 
 (
-	groupBox grp1 "Import/Export:" pos:[2,2] width:156 height:124 align:#left
-	button btn_1 "Send to Blender"  pos:[8,40] width:144 height:40 align:#left tooltip:"Export model to Blender"
-	button btn_2 "Get from Blender" pos:[8,80] width:144 height:40 align:#left tooltip:"Import model from Blender"
-	spinner spn_1 "Global scale     " pos:[8,20] range:[0,1000000.0,(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "GlobalScale" "Scale" as float)] type:#float fieldWidth:60 toolTip:"Import/Export Global Scale" pos:[7,35]	
+
+	groupBox grp1 "Import/Export:" pos:[2,2] width:156 height:108 align:#left
+	button btn_1 "Send to Blender"  pos:[8,20] width:144 height:40 align:#left tooltip:"Export model to Blender"
+	button btn_2 "Get from Blender" pos:[8,60] width:144 height:40 align:#left tooltip:"Import model from Blender"	
 	
-	groupBox grp2 "Add modifiers:" pos:[2,130] width:156 height:80 align:#left	
-	checkbox ckb_1 " TurnToPoly" pos:[8,150] checked:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "TurnToPoly" as booleanClass) tooltip:"Add TurnToPoly modifier after import"
-	checkbox ckb_2 " Smooth" pos:[8,170] checked:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "Smooth" as booleanClass) tooltip:"Add Smooth modifier after import"
-	spinner spn_2 "" pos:[95,170] range:[0,180.0,(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "SmoothAngle" as float)] tooltip:"AutoSmooth" type:#float fieldWidth:45 scale:1
-	checkbox ckb_3 " Convert to Poly" pos:[8,190] checked:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "ConvertToPoly" as booleanClass) tooltip:"Convert to EditablePoly.Collapse stack."
+	groupBox grp_prefs "Preferences:" pos:[2,113] width:156 height:235 align:#left
+	groupBox grp_export "Export:" pos:[6,127] width:148 height:105 align:#left
+	spinner spn_e_globalScale "Global scale   " pos:[11,142] range:[0,1000000.0,(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "GlobalScale" as float)] type:#float fieldWidth:60 toolTip:"Import/Export Global Scale" pos:[7,35]
+	label lbl_e_convertUnits "ConvertUnits" pos:[11,164]
+	dropdownlist dd_e_convertUnits "" pos:[79,160] items:#("mm", "cm", "dm", "m", "km", "in", "ft", "mi", "yd") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "ConvertUnits" as integer) width: 69	 height:16
+	label lbl_e_smoothingGroups "Smoothing Groups" pos:[11,208]
+	checkbox ckb_e_smoothingGroups "" pos:[135,208] checked:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "SmoothingGroups" as booleanClass) tooltip:"" width: 16
+	label lbl_e_upAxis "UpAxis" pos:[11,185]
+	dropdownlist dd_e_upAxis "" pos:[79,183] items:#("Y", "Z") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "UpAxis" as integer) width: 69  height:16	
 	
+	groupBox grp_import "Import:" pos:[6,234] width:148 height:105 align:#left	
+	spinner spn_i_globalScale "Global scale   " pos:[11,250] range:[0,1000000.0,(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import" "GlobalScale" as float)] type:#float fieldWidth:60 toolTip:"Import/Export Global Scale" pos:[7,35]
+	label lbl_i_convertUnits "ConvertUnits" pos:[11,271]
+	dropdownlist dd_i_convertUnits "" pos:[79,268] items:#("mm", "cm", "dm", "m", "km", "in", "ft", "mi", "yd") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import" "ConvertUnits" as integer) width: 69	 height:16
+	label lbl_i_upAxis "UpAxis" pos:[11,293]
+	dropdownlist dd_i_upAxis "" pos:[79,291] items:#("Y", "Z") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import" "UpAxis" as integer) width: 69  height:16
+	label lbl_i_smoothingGroups "Smoothing Groups" pos:[11,315]
+	checkbox ckb_i_smoothingGroups "" pos:[135,315] checked:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import" "SmoothingGroups" as booleanClass) tooltip:"" width: 16
 	
 	
 	local BMAX_posX =  getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Position" "PosX" as float 	
@@ -39,7 +51,11 @@ rollout BMAX_Rollout "BMAX Connector"
 	fn BMAX_Export fileName =
 	(
 		local expObjs = #()
-		local BMAX_GlobalScale = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "GlobalScale" "Scale" as float
+		local BMAX_Exp_GlobalScale = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "GlobalScale" as float
+		local BMAX_Exp_ConvertUnits = dd_e_convertUnits.items[ (getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "ConvertUnits" as integer)]
+		local BMAX_Exp_UpAxis = dd_e_upAxis.items[(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "UpAxis" as integer)]
+		local BMAX_Exp_SmoothingGroups = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "SmoothingGroups" as booleanClass
+		
 		expObjs = for o in selection where (isKindOf o.baseObject editable_poly) collect o
 		--max select none
 		for o in expObjs do 
@@ -53,7 +69,7 @@ rollout BMAX_Rollout "BMAX Connector"
 			(			
 				pluginManager.loadClass FBXEXP
 				--Geometry------------------------------------------------------------------------
-				FBXExporterSetParam "SmoothingGroups" true
+				FBXExporterSetParam "SmoothingGroups" BMAX_Exp_SmoothingGroups
 				FBXExporterSetParam "NormalsPerPoly" false
 				FBXExporterSetParam "TangentSpaceExport" true
 				FBXExporterSetParam "SmoothMeshExport" false
@@ -71,11 +87,11 @@ rollout BMAX_Rollout "BMAX Connector"
 				--Embed Media--------------------------------------------------------------------
 				FBXExporterSetParam "EmbedTextures" false
 				--Units----------------------------------------------------------------------------
-				FBXExporterSetParam "ConvertUnit" ((BMAX_Units())[1])
-				FBXExporterSetParam "ScaleFactor" BMAX_GlobalScale
+				FBXExporterSetParam "ConvertUnit" BMAX_Exp_ConvertUnits
+				FBXExporterSetParam "ScaleFactor" BMAX_Exp_GlobalScale
 				--Axis Conversion-----------------------------------------------------------------
 				FBXExporterSetParam "AxisConversionMethod" "None"
-				FBXExporterSetParam "UpAxis" "Y" 
+				FBXExporterSetParam "UpAxis" BMAX_Exp_UpAxis
 				--UI----------------------------------------------------------------
 				FBXExporterSetParam "ShowWarnings" false
 				FBXExporterSetParam "GenerateLog" false
@@ -129,17 +145,16 @@ rollout BMAX_Rollout "BMAX Connector"
 	)
 	
 	fn BMAX_Import fileName = 
-	(
-		local BMAX_GlobalScale = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "GlobalScale" "Scale" as float	
-		local BMAX_TurnToPoly = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "TurnToPoly" as booleanClass	
-		local BMAX_Smooth = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "Smooth" as booleanClass
-		local BMAX_SmoothAngle = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "SmoothAngle" as float		
-		local BMAX_ConvertToPoly = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "ConvertToPoly" as booleanClass	
+	(		
+		local BMAX_Imp_GlobalScale = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import" "GlobalScale" as float
+		local BMAX_Imp_ConvertUnits = dd_i_convertUnits.items[ (getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import" "ConvertUnits" as integer)]
+		local BMAX_Imp_UpAxis = dd_i_upAxis.items[(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import" "UpAxis" as integer)]
+		local BMAX_Imp_SmoothingGroups = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import" "SmoothingGroups" as booleanClass
 		
 		pluginManager.loadClass FBXIMP			
 		FBXImporterSetParam "Mode" #create
 		--Geometry------------------------------------------------------------------------
-		FBXImporterSetParam "SmoothingGroups" false					
+		FBXImporterSetParam "SmoothingGroups" BMAX_Imp_SmoothingGroups					
 		--Animation------------------------------------------------------------------------
 		FBXImporterSetParam "Animation" false		
 		FBXImporterSetParam "BakeAnimationLayers" false
@@ -157,12 +172,12 @@ rollout BMAX_Rollout "BMAX Connector"
 		--Lights------------------------------------------------------------------------
 		FBXImporterSetParam "Lights" false	
 		--Units----------------------------------------------------------------------------
-		FBXImporterSetParam "ConvertUnit" ((BMAX_Units())[1])
-		FBXImporterSetParam "ScaleFactor" BMAX_GlobalScale
+		FBXImporterSetParam "ConvertUnit" BMAX_Imp_ConvertUnits
+		FBXImporterSetParam "ScaleFactor" BMAX_Imp_GlobalScale
 		FBXImporterSetParam "ScaleConversion" True
 		--Axis Conversion-----------------------------------------------------------------
 		FBXImporterSetParam "AxisConversion" false
-		FBXImporterSetParam "UpAxis" "Z"		
+		FBXImporterSetParam "UpAxis" BMAX_Imp_UpAxis		
 			
 		importFile fileName #noprompt usage:FBXIMP
 		
@@ -170,45 +185,8 @@ rollout BMAX_Rollout "BMAX Connector"
 		B_Objs = for o in selection where (isKindOf o GeometryClass and canConvertTo o Editable_Mesh) collect o
 		if B_Objs.count != 0 do
 		(
-			for o in B_Objs do (o.wirecolor = (color 0 0 0))
-			if BMAX_TurnToPoly == True do
-			(
-				for o in B_Objs do 
-				(
-					addModifier o (Turn_to_Poly())
-				)
-			)
-			if BMAX_Smooth == true do
-			(
-				if BMAX_SmoothAngle == 0 then
-				(
-					for o in B_Objs do 
-					(
-						addModifier o (Smooth())
-						--for m in o.modifiers where classof m == Smooth do (m.smoothingBits = 1)
-						o.modifiers[#Smooth].smoothingBits = 1
-					)
-				)
-				else
-				(
-					for o in B_Objs do 
-					(
-						addModifier o (Smooth())
-						--for m in o.modifiers where classof m == Smooth do (m.smoothingBits = 1)
-						o.modifiers[#Smooth].autosmooth = true
-						o.modifiers[#Smooth].preventIndirect = false
-						o.modifiers[#Smooth].threshold = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "SmoothAngle" as float
-						
-					)					
-				)
-			)
-			if BMAX_ConvertToPoly == True do
-			(
-				for o in B_Objs do 
-				(
-					convertToPoly o
-				)
-			)
+			for o in B_Objs do (o.wirecolor = (color 0 0 0))			
+
 		)
 		
 	)	
@@ -268,31 +246,40 @@ rollout BMAX_Rollout "BMAX Connector"
 		BMAX_Import ((getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Path" "BMAX") + ("\BMAX_TMP_BLENDER.fbx"))		
 	)
 	
-	on spn_1 changed val do 
+	on spn_e_globalScale changed val do 
 	(
-		setINISetting ("$userscripts\\BMAX\\bmax.ini") "GlobalScale" "Scale" ((spn_1.value) as string)							
-	)
-	
-	on ckb_1 changed state do 
+		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "GlobalScale" ((spn_e_globalScale.value) as string)							
+	)	
+	on dd_e_convertUnits selected val do
 	(
-		setINISetting ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "TurnToPoly" ((ckb_1.state) as string)							
+		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "ConvertUnits" ((dd_e_convertUnits.selection) as string)
 	)
-	
-	on ckb_2 changed state do 
+	on dd_e_upAxis selected val do
 	(
-		setINISetting ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "Smooth" ((ckb_2.state) as string)							
+		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "UpAxis" ((dd_e_upAxis.selection) as string)
 	)
+	on ckb_e_smoothingGroups changed state do 
+ 	(
+ 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "SmoothingGroups" ((ckb_e_smoothingGroups.state) as string)							
+ 	)
 	
-	on spn_2 changed val do
+	
+	on spn_i_globalScale changed val do 
 	(
-		setINISetting ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "SmoothAngle" ((spn_2.value) as string)							
-	)
-	
-	on ckb_3 changed state do 
+		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "GlobalScale" ((spn_i_globalScale.value) as string)							
+	)	
+	on dd_i_convertUnits selected val do
 	(
-		setINISetting ("$userscripts\\BMAX\\bmax.ini") "PostOPS" "ConvertToPoly" ((ckb_3.state) as string)							
+		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "ConvertUnits" ((dd_i_convertUnits.selection) as string)
 	)
-	
+	on dd_i_upAxis selected val do
+	(
+		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "UpAxis" ((dd_i_upAxis.selection) as string)
+	)
+	on ckb_i_smoothingGroups changed state do 
+ 	(
+ 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "SmoothingGroups" ((ckb_i_smoothingGroups.state) as string)							
+ 	)
 	
 	on BMAX_Rollout close do 
 	(	
@@ -317,6 +304,6 @@ rollout BMAX_Rollout "BMAX Connector"
 	)
 )
 
-createDialog BMAX_Rollout 160 215 style:#(#style_titlebar, #style_sysmenu, #style_toolwindow)
+createDialog BMAX_Rollout 160 350 style:#(#style_titlebar, #style_sysmenu, #style_toolwindow)
 
 
