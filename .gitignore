@@ -1,0 +1,16 @@
+
+/__pycache__
+*.py[cod]
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Bookmarks file and recents
+config/bookmarks.txt
+config/recent-files.txt
+*.code-workspace
