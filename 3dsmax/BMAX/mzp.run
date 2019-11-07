@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 name "BMAX_Connector"
 version 2.0
 
@@ -10,4 +11,18 @@ run "install.ms"
 
 clear temp
 clear temp on MAX exit
+=======
+name "BMAX_Connector"
+version 2.0
+
+treeMove "BMAX" to "$userscripts"
+move "Icons\*.*" to "$usericons"
+move "Macro\*.*" to "$usermacros"
+
+drop "install.ms"
+run "install.ms"
+
+clear temp
+clear temp on MAX exit
+>>>>>>> 556b7fca844de37624045afeaadb4a7b4e4e9e34
 clear temp on reset
