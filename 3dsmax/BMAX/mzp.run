@@ -1,0 +1,13 @@
+name "BMAX_Connector"
+version 2.0
+
+treeMove "BMAX" to "$userscripts"
+move "Icons\*.*" to "$usericons"
+move "Macro\*.*" to "$usermacros"
+
+drop "install.ms"
+run "install.ms"
+
+clear temp
+clear temp on MAX exit
+clear temp on reset
