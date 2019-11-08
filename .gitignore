@@ -1,14 +1,4 @@
-<<<<<<< HEAD
-# Byte-compiled / optimized / DLL files
-
-=======
-
 /__pycache__
-*.py[cod]
-
-# Byte-compiled / optimized / DLL files
->>>>>>> 556b7fca844de37624045afeaadb4a7b4e4e9e34
-__pycache__/
 *.py[cod]
 
 # Installer logs
@@ -18,13 +8,8 @@ pip-delete-this-directory.txt
 # Bookmarks file and recents
 config/bookmarks.txt
 config/recent-files.txt
-<<<<<<< HEAD
 
 # VSCode
 .vscode/*
-
-
-
-=======
 *.code-workspace
->>>>>>> 556b7fca844de37624045afeaadb4a7b4e4e9e34
+
