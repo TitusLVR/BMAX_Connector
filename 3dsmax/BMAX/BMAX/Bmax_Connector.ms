@@ -1,4 +1,4 @@
---BMAX script version.014
+--BMAX script version.015
 try(destroydialog BMAX_Rollout)catch()
 rollout BMAX_Rollout "BMAX Connector" 
 (
@@ -20,6 +20,8 @@ rollout BMAX_Rollout "BMAX Connector"
 		local expObjs = #()
 		local expLights = #()
 		local expCameras = #()
+		local clonedObjs = #()
+		local selectionNames = #()
 		local BMAX_Exp_GlobalScale = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "GlobalScale" as float
 		local BMAX_Exp_ConvertUnits = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "ConvertUnits_sys" as string
 		local BMAX_Exp_UpAxis = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "UpAxis_sys" as string
@@ -31,12 +33,17 @@ rollout BMAX_Rollout "BMAX Connector"
 		local BMAX_Exp_ResetXform = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "ResetXform" as booleanClass
 		local BMAX_Exp_convertToPoly = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "convertToPoly" as booleanClass
 		
-		 
-		for o in selection do
-		(	
+		for n in selection do (append selectionNames n.name)
+		
+		maxOps.cloneNodes selection cloneType:#copy newNodes:&clonedObjs
+		
+		for i=1 to clonedObjs.count do
+		(
+			o = clonedObjs[i]
+			o.name = selectionNames[i]
 			if superClassOf o == geometryClass and ClassOf o != Targetobject then
 			(	
-				local objSnapshot = copy o
+				local objSnapshot = o
 				if BMAX_Exp_collapseStack == True then (collapsestack objSnapshot)				
 				if BMAX_Exp_ResetXform == True then (resetxform objSnapshot)
 				if BMAX_Exp_convertToPoly == True then 
@@ -44,16 +51,14 @@ rollout BMAX_Rollout "BMAX Connector"
 						convertToPoly objSnapshot
 						polyop.collapseDeadStructs objSnapshot
 						objSnapshot.DeleteIsoMapVerts()
-					)
-				objSnapshot.name = o.name + ""
+					)				
 				append expObjs objSnapshot
 			)
 			
 			if isKindOf o.baseObject Shape then 
-			(
-				local splineSnapshot = copy o
-				convertToPoly splineSnapshot
-				splineSnapshot.name = o.name + ""				
+			(				
+				local splineSnapshot = o
+				convertToPoly splineSnapshot								
 				append expObjs splineSnapshot
 			)
 			
@@ -89,8 +94,8 @@ rollout BMAX_Rollout "BMAX Connector"
 		max select none
 		select expObjs
 		if expLights.count !=0 then selectmore expLights
-		if expCameras.count !=0 then selectmore expCameras
-			
+		if expCameras.count !=0 then selectmore expCameras			
+		
 		if selection.count != 0 then
 			(			
 				pluginManager.loadClass FBXEXP
@@ -256,7 +261,7 @@ rollout BMAX_Rollout "BMAX Connector"
 			)	
 		)
 		setDialogPos BMAX_Rollout [(BMAX_posX),(BMAX_posY)]
-		format "BMAX Connector: Script version:014 - loaded, have fun!!! \n"
+		format "BMAX Connector: Script version:015 - loaded, have fun!!! \n"
 		format "BMAX Connector: Working folder: %,  if you want to change folder - - - RightMouseButton DoubleClick on BMAX window - - -\n" BMAX	
 	) 
 	
