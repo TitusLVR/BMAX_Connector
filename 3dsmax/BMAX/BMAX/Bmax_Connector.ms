@@ -1,4 +1,4 @@
---BMAX script version.015
+--BMAX script version.016
 try(destroydialog BMAX_Rollout)catch()
 rollout BMAX_Rollout "BMAX Connector" 
 (
@@ -32,6 +32,7 @@ rollout BMAX_Rollout "BMAX Connector"
 		local BMAX_Exp_collapseStack = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "collapseStack" as booleanClass
 		local BMAX_Exp_ResetXform = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "ResetXform" as booleanClass
 		local BMAX_Exp_convertToPoly = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "convertToPoly" as booleanClass
+		local BMAX_Exp_FBX_Ver = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "FBX_Version_sys" as string
 		
 		for n in selection do (append selectionNames n.name)
 		
@@ -128,44 +129,9 @@ rollout BMAX_Rollout "BMAX Connector"
 				FBXExporterSetParam "GenerateLog" false
 				--FBX File Format----------------------------------------------------------------
 				FBXExporterSetParam "ASCII" false
-				if  MaxVer < 14000 then 
-				(
-					FBXExporterSetParam "FileVersion" "FBX200600"
-				)		
-				else 
-					(
-						case MaxVer of 
-						(
-							-- 3dsmax2018
-							20000: (
-									FBXExporterSetParam "FileVersion" "FBX201800"
-									)
-							-- 3dsmax2017
-							19000: (
-									FBXExporterSetParam "FileVersion" "FBX201700"
-									)
-							-- 3dsmax2016
-							18000: (
-									FBXExporterSetParam "FileVersion" "FBX201600"
-									)
-							-- 3dsmax2015
-							17000: (
-									FBXExporterSetParam "FileVersion" "FBX201500"
-									)
-							-- 3dsmax2014
-							16000: (
-									FBXExporterSetParam "FileVersion" "FBX201400"
-									)
-							-- 3dsmax2013
-							15000: (
-									FBXExporterSetParam "FileVersion" "FBX201300"
-									)
-							-- 3dsmax2012
-							14000: (
-									FBXExporterSetParam "FileVersion" "FBX201200"
-									)				
-						)		
-					)
+				
+				FBXExporterSetParam "FileVersion" BMAX_Exp_FBX_Ver
+				
 				-----------------------------------------------------------------------------------						
 				exportFile fileName #noPrompt selectedOnly:true	usage:FBXEXP
 				for n in expObjs do delete n
@@ -186,6 +152,8 @@ rollout BMAX_Rollout "BMAX Connector"
 		local BMAX_Imp_Cameras = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Cameras" as booleanClass
 		local BMAX_Imp_Lights = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Lights" as booleanClass
 		local BMAX_Imp_Animation = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Animation" as booleanClass
+		
+		
 		
 		pluginManager.loadClass FBXIMP			
 		FBXImporterSetParam "Mode" #create
@@ -307,36 +275,39 @@ rollout BMAX_Rollout "BMAX Connector"
 )
 rollout BMAX_PREFS_Rollout "Preferences" rolledUp: True
 (	
-	groupBox grp_export "Export:" pos:[2,2] width:140 height:222 align:#left
+	groupBox grp_export "Export:" pos:[2,2] width:140 height:235 align:#left
 	spinner spn_e_globalScale "Global scale:" pos:[15,20] range:[0,1000000.0,(getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "GlobalScale" as float)] type:#float fieldWidth:50 toolTip:"Import/Export Global Scale" 
 	label lbl_e_convertUnits "ConvertUnits:" pos:[9,44]
 	dropdownlist dd_e_convertUnits "" pos:[78,40] items:#("mm", "cm", "dm", "m", "km", "in", "ft", "mi", "yd") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export" "ConvertUnits" as integer) width: 59	 height:16	toolTip:"System units"
 	label lbl_e_upAxis "UpAxis:" pos:[39,68]
-	dropdownlist dd_e_upAxis "" pos:[78,65] items:#("Y", "Z") selection:(getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "UpAxis" as integer) width: 59  height:16 tooltip:"Y or Z"	
-	checkbox ckb_e_smoothingGroups " Smoothing groups" pos:[9,88] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "SmoothingGroups") as booleanClass) tooltip:"Use smoothing groups, mark sharp edges in blender" 
-	checkbox ckb_e_cameras "Cameras" pos:[9,111] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "Cameras") as booleanClass) tooltip:"Export cameras"
-	checkbox ckb_e_lights "Lights" pos:[80,111] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "Lights") as booleanClass) tooltip:"Export lights"
-	checkbox ckb_e_animation "Animation" pos:[9,134] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "Animation") as booleanClass) tooltip:"Export animation"
-	checkbox ckb_e_collapseStack "Mod.Collapse" pos:[9,157] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "collapseStack") as booleanClass) tooltip:"Collapse modifiers stack"
-	checkbox ckb_e_resetXform "ResetXForm" pos:[9,180] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "ResetXform") as booleanClass) tooltip:"Apply transformation matrix = resetXform"
-	checkbox ckb_e_convertToPoly "ConvertToPoly" pos:[9,203] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "convertToPoly") as booleanClass) tooltip:"Convert object to editable poly and delete deadVerts and deadStructs(some kind of cleanup)"
+	dropdownlist dd_e_upAxis "" pos:[78,65] items:#("Y", "Z") selection:(getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "UpAxis" as integer) width: 59  height:16 tooltip:"Y or Z"
+	label lbl_e_fbx_ver "FBX:" pos:[25,94]
+	dropdownlist dd_e_fbx_ver "" pos:[52,90] items:#("FBX201200", "FBX201300", "FBX201400", "FBX201600", "FBX201800", "FBX201900", "FBX202000", "FBX202100") selection:(getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "FBX_Version" as integer) width:85  height:16 tooltip:"Select FBX format version. Blender is using FBX Version 7.1 or newer.(FBX 2014)"
 	
-	groupBox grp_import "Import:" pos:[2,225] width:140 height:175 align:#left	
-	spinner spn_i_globalScale "Global scale:" pos:[15,243] range:[0,1000000.0,(getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "GlobalScale" as float)] type:#float fieldWidth:50 toolTip:"Import/Export Global Scale" 
-	label lbl_i_convertUnits "ConvertUnits:" pos:[9,267]
-	dropdownlist dd_i_convertUnits "" pos:[78,263] items:#("mm", "cm", "dm", "m", "km", "in", "ft", "mi", "yd") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import" "ConvertUnits" as integer) width: 59 height:16 toolTip:"System units"
-	label lbl_i_upAxis "UpAxis:" pos:[39,291]
-	dropdownlist dd_i_upAxis "" pos:[78,288] items:#("Y", "Z") selection:(getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "UpAxis" as integer) width: 59  height:16	tooltip:"Y or Z"
-	checkbox ckb_i_smoothingGroups " Smoothing groups" pos:[9,310] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "SmoothingGroups") as booleanClass) tooltip:"Disabled - import with custom normals.\nEnabled - import with smoothing groups."
-	checkbox ckb_i_cameras "Cameras" pos:[9,333] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Cameras") as booleanClass) tooltip:"Import cameras"
-	checkbox ckb_i_lights "Lights" pos:[9,356] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Lights") as booleanClass) tooltip:"Import lights"
-	checkbox ckb_i_animation "Animation" pos:[9,379] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Animation") as booleanClass) tooltip:"Import animation"
+	checkbox ckb_e_smoothingGroups " Smoothing groups" pos:[9,115] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "SmoothingGroups") as booleanClass) tooltip:"Use smoothing groups, mark sharp edges in blender" 
+	checkbox ckb_e_cameras "Cameras" pos:[9,135] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "Cameras") as booleanClass) tooltip:"Export cameras"
+	checkbox ckb_e_lights "Lights" pos:[80,135] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "Lights") as booleanClass) tooltip:"Export lights"
+	checkbox ckb_e_animation "Animation" pos:[9,155] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "Animation") as booleanClass) tooltip:"Export animation"
+	checkbox ckb_e_collapseStack "Mod.Collapse" pos:[9,175] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "collapseStack") as booleanClass) tooltip:"Collapse modifiers stack"
+	checkbox ckb_e_resetXform "ResetXForm" pos:[9,195] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "ResetXform") as booleanClass) tooltip:"Apply transformation matrix = resetXform"
+	checkbox ckb_e_convertToPoly "ConvertToPoly" pos:[9,215] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "convertToPoly") as booleanClass) tooltip:"Convert object to editable poly and delete deadVerts and deadStructs(some kind of cleanup)"
+	
+	groupBox grp_import "Import:" pos:[2,245] width:140 height:175 align:#left	
+	spinner spn_i_globalScale "Global scale:" pos:[15,265] range:[0,1000000.0,(getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "GlobalScale" as float)] type:#float fieldWidth:50 toolTip:"Import/Export Global Scale" 
+	label lbl_i_convertUnits "ConvertUnits:" pos:[9,285]
+	dropdownlist dd_i_convertUnits "" pos:[78,285] items:#("mm", "cm", "dm", "m", "km", "in", "ft", "mi", "yd") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import" "ConvertUnits" as integer) width: 59 height:16 toolTip:"System units"
+	label lbl_i_upAxis "UpAxis:" pos:[39,310]
+	dropdownlist dd_i_upAxis "" pos:[78,310] items:#("Y", "Z") selection:(getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "UpAxis" as integer) width: 59  height:16	tooltip:"Y or Z"
+	checkbox ckb_i_smoothingGroups " Smoothing groups" pos:[9,335] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "SmoothingGroups") as booleanClass) tooltip:"Disabled - import with custom normals.\nEnabled - import with smoothing groups."
+	checkbox ckb_i_cameras "Cameras" pos:[9,355] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Cameras") as booleanClass) tooltip:"Import cameras"
+	checkbox ckb_i_lights "Lights" pos:[9,375] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Lights") as booleanClass) tooltip:"Import lights"
+	checkbox ckb_i_animation "Animation" pos:[9,395] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Animation") as booleanClass) tooltip:"Import animation"
 	
 	on BMAX_PREFS_Rollout rolledUp state do
 	(
 		if state then 
 			(			
-				BMAX_Rollout.height = 545
+				BMAX_Rollout.height = 565
 			)
 			else
 				(
@@ -357,6 +328,11 @@ rollout BMAX_PREFS_Rollout "Preferences" rolledUp: True
 	(
 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "UpAxis" ((dd_e_upAxis.selection) as string)
 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "UpAxis_sys" ((dd_e_upAxis.items[val]) as string)
+	)
+	on dd_e_fbx_ver selected val do
+	(
+		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "FBX_Version" ((dd_e_fbx_ver.selection) as string)
+		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "FBX_Version_sys" ((dd_e_fbx_ver.items[val]) as string)
 	)
 	on ckb_e_smoothingGroups changed state do 
  	(
