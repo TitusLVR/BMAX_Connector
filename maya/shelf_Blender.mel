@@ -34,7 +34,7 @@ global proc shelf_Blender () {
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
-        -command "import os\nimport os.path\nimport tempfile\nimport maya.cmds as cmds\n\npath = os.path.join(tempfile.gettempdir(),\"BMAX\", \"BMAX_TMP_BLENDER.fbx\")\nprint(path)\n\ncmds.file(path, i=True)" 
+        -command "import os\nimport os.path\nimport tempfile\nimport maya.cmds as cmds\nimport pymel.core as pm\n\nif not cmds.pluginInfo(\"fbxmaya\", q=True, l=True):\n\tpm.loadPlugin(\"fbxmaya\") # LOAD PLUGIN\n\npath = os.path.join(tempfile.gettempdir(),\"BMAX\", \"BMAX_TMP_BLENDER.fbx\")\nprint(\"Imported from:\", path)\npm.mel.FBXImport(f=path)" 
         -sourceType "python" 
         -commandRepeatable 1
         -flat 1
@@ -69,7 +69,7 @@ global proc shelf_Blender () {
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
-        -command "import os.path\nimport tempfile\nimport maya.cmds as cmds\n\npath = os.path.join(tempfile.gettempdir(),\"BMAX\", \"BMAX_TMP_BLENDER.fbx\")\n\ncmds.file(path, es=True, type=\"FBX\", f=True)\n" 
+        -command "import os.path\nimport tempfile\nimport maya.cmds as cmds\nimport pymel.core as pm\n\npath = os.path.join(tempfile.gettempdir(),\"BMAX\", \"BMAX_TMP_MAX.fbx\")\n\npm.mel.FBXExport(f=path, s=True)" 
         -sourceType "python" 
         -commandRepeatable 1
         -flat 1
