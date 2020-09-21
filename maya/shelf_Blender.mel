@@ -1,0 +1,78 @@
+global proc shelf_Blender () {
+    global string $gBuffStr;
+    global string $gBuffStr0;
+    global string $gBuffStr1;
+
+
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Get FBX From Blender" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "Get From Blender" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "BLIN" 
+        -overlayLabelColor 0.1737 1 0 
+        -overlayLabelBackColor 0 0 0 1 
+        -image "fileOpen.png" 
+        -image1 "fileOpen.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import os\nimport os.path\nimport tempfile\nimport maya.cmds as cmds\n\npath = os.path.join(tempfile.gettempdir(),\"BMAX\", \"BMAX_TMP_BLENDER.fbx\")\nprint(path)\n\ncmds.file(path, i=True)" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+    shelfButton
+        -enableCommandRepeat 1
+        -flexibleWidthType 3
+        -flexibleWidthValue 32
+        -enable 1
+        -width 35
+        -height 34
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Export FBX to Blender" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "Send to Blender" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -font "plainLabelFont" 
+        -imageOverlayLabel "BLOUT" 
+        -overlayLabelColor 1 0.6178 0 
+        -overlayLabelBackColor 0 0 0 1 
+        -image "fileSave.png" 
+        -image1 "fileSave.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import os.path\nimport tempfile\nimport maya.cmds as cmds\n\npath = os.path.join(tempfile.gettempdir(),\"BMAX\", \"BMAX_TMP_BLENDER.fbx\")\n\ncmds.file(path, es=True, type=\"FBX\", f=True)\n" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
+
+} 
