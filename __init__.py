@@ -102,7 +102,7 @@ def BMAX_Import():
     temp_file_blender = path + "/BMAX_TMP_BLENDER.fbx"            
        
     #---IMPORT---        
-    #---Import FXB---
+    #---Import FBX---
     global_scale = bpy.context.preferences.addons['BMAX_Connector'].preferences.global_scale
     if os.path.isfile(temp_file_max) == True: 
         bpy.ops.import_scene.fbx(filepath=temp_file_max, 
@@ -133,8 +133,8 @@ def BMAX_Import():
 
 class BMAX_OT_Export(Operator):
     bl_idname = "bmax.export"
-    bl_label = "Send to 3dsmax"
-    bl_description = "Export model to 3dsmax"
+    bl_label = "Send to Maya/3dsmax"
+    bl_description = "Export FBX to Maya/3dsmax"
     bl_options = {'REGISTER', 'UNDO'} 
     
     def execute(self, context):        
@@ -148,8 +148,8 @@ class BMAX_OT_Export(Operator):
 
 class BMAX_OT_Import(Operator):
     bl_idname = "bmax.import"
-    bl_label = "Import from 3dsmax"
-    bl_description = "Import model from 3dsmax"
+    bl_label = "Import from Maya/3dsmax"
+    bl_description = "Import FBX from Maya/3dsmax"
     bl_options = {'REGISTER', 'UNDO'} 
     
     def execute(self, context):        
@@ -171,8 +171,8 @@ class VIEW3D_PT_BMAX(Panel):
         col = layout.column(align=True)
         col.prop(prefs,"global_scale")
         col.scale_y = 1.5
-        col.operator('bmax.export', icon='EXPORT',text = "Send to 3dsmax")
-        col.operator('bmax.import',icon='IMPORT', text="Get from 3dsmax")
+        col.operator('bmax.export', icon='EXPORT',text = "Send to Maya/3dsmax")
+        col.operator('bmax.import',icon='IMPORT', text="Get from Maya/3dsmax")
         
 class BMAX_AddonPreferences(AddonPreferences):
     bl_idname = __name__    
