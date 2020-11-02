@@ -1,5 +1,6 @@
 --BMAX script version.016
 --BMAX ver.017: Added preserve instances
+--BMAX ver.018: Added ResetXForm on import and rest ofFBX import parameters
 try(destroydialog BMAX_Rollout)catch()
 rollout BMAX_Rollout "BMAX Connector" 
 (
@@ -8,7 +9,7 @@ rollout BMAX_Rollout "BMAX Connector"
 	button btn_1 "Send to Blender"  pos:[8,20] width:144 height:40 align:#left tooltip:"Export model to Blender"
 	button btn_2 "Get from Blender" pos:[8,60] width:144 height:40 align:#left tooltip:"Import model from Blender"
 	
-	subrollout prefs_frame "Preferences" height:550 width:156 pos:[2,115]	
+	subrollout prefs_frame "Preferences" height:675 width:156 pos:[2,115]	
 	
 	local BMAX_posX =  getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Position" "PosX" as float 	
 	local BMAX_posY =  getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Position" "PosY" as float	
@@ -151,9 +152,25 @@ rollout BMAX_Rollout "BMAX Connector"
 		local BMAX_Imp_ConvertUnits = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "ConvertUnits_sys" as string
 		local BMAX_Imp_UpAxis = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "UpAxis_sys" as string
 		local BMAX_Imp_SmoothingGroups = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "SmoothingGroups" as booleanClass
+		local BMAX_Imp_ResetXForm = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "ResetXForm" as booleanClass
 		local BMAX_Imp_Cameras = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Cameras" as booleanClass
 		local BMAX_Imp_Lights = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Lights" as booleanClass
+		
 		local BMAX_Imp_Animation = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Animation" as booleanClass
+		local BMAX_Imp_BakeAnimationLayers = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "BakeAnimationLayers" as booleanClass
+		local BMAX_Imp_FillTimeline = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "FillTimeline" as booleanClass
+		local BMAX_Imp_FilterKeyReducer = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "FilterKeyReducer" as booleanClass
+		local BMAX_Imp_FilterKeySync = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "FilterKeySync" as booleanClass
+		local BMAX_Imp_KeepFrameRate = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "KeepFrameRate" as booleanClass
+		
+		local BMAX_Imp_ImportBoneAsDummy = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "ImportBoneAsDummy" as booleanClass
+	    local BMAX_Imp_Markers = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Markers" as booleanClass
+        local BMAX_Imp_PointCache = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "PointCache" as booleanClass
+		local BMAX_Imp_Shape = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Shape" as booleanClass
+		local BMAX_Imp_Skin = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Skin" as booleanClass
+
+
+		
 		
 		
 		
@@ -163,16 +180,16 @@ rollout BMAX_Rollout "BMAX Connector"
 		FBXImporterSetParam "SmoothingGroups" BMAX_Imp_SmoothingGroups					
 		--Animation------------------------------------------------------------------------
 		FBXImporterSetParam "Animation" BMAX_Imp_Animation		
-		FBXImporterSetParam "BakeAnimationLayers" false
-		FBXImporterSetParam "FillTimeline" false
-		FBXImporterSetParam "FilterKeyReducer" false	
-		FBXImporterSetParam "FilterKeySync" false
-		FBXImporterSetParam "ImportBoneAsDummy" false
-		FBXImporterSetParam "KeepFrameRate" false		
-		FBXImporterSetParam	"Markers" false			
-		FBXImporterSetParam "PointCache" false						
-		FBXImporterSetParam "Shape" false	
-		FBXImporterSetParam "Skin" false	
+		FBXImporterSetParam "BakeAnimationLayers" BMAX_Imp_BakeAnimationLayers
+		FBXImporterSetParam "FillTimeline" BMAX_Imp_FillTimeline
+		FBXImporterSetParam "FilterKeyReducer" BMAX_Imp_FilterKeyReducer 
+		FBXImporterSetParam "FilterKeySync" BMAX_Imp_FilterKeySync 
+		FBXImporterSetParam "ImportBoneAsDummy" BMAX_Imp_ImportBoneAsDummy
+		FBXImporterSetParam "KeepFrameRate" BMAX_Imp_KeepFrameRate		
+		FBXImporterSetParam "Markers" BMAX_Imp_Markers			
+		FBXImporterSetParam "PointCache" BMAX_Imp_PointCache						
+		FBXImporterSetParam "Shape" BMAX_Imp_Shape
+		FBXImporterSetParam "Skin" BMAX_Imp_Skin	
 		--Cameras------------------------------------------------------------------------
 		FBXImporterSetParam "Cameras" BMAX_Imp_Cameras
 		--Lights------------------------------------------------------------------------
@@ -190,10 +207,17 @@ rollout BMAX_Rollout "BMAX Connector"
 		
 		B_Objs = for o in selection where (isKindOf o GeometryClass and canConvertTo o Editable_Mesh) collect o
 		if B_Objs.count != 0 do
-		(
-			for o in B_Objs do (o.wirecolor = (color 0 0 0))			
-
-		)
+			(
+				for o in B_Objs do (o.wirecolor = (color 0 0 0))
+				if BMAX_Imp_ResetXForm == True do 
+					(
+						for o in B_Objs do
+						( 
+							resetxform o 
+							convertToPoly o
+						)
+					)
+			)
 		
 	)	
 	
@@ -231,7 +255,7 @@ rollout BMAX_Rollout "BMAX Connector"
 			)	
 		)
 		setDialogPos BMAX_Rollout [(BMAX_posX),(BMAX_posY)]
-		format "BMAX Connector: Script version:017 - loaded, have fun!!! \n"
+		format "BMAX Connector: Script version:018 - loaded, have fun!!! \n"
 		format "BMAX Connector: Working folder: %,  if you want to change folder - - - RightMouseButton DoubleClick on BMAX window - - -\n" BMAX	
 	) 
 	
@@ -295,22 +319,34 @@ rollout BMAX_PREFS_Rollout "Preferences" rolledUp: True
 	checkbox ckb_e_resetXform "ResetXForm" pos:[9,215] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "ResetXform") as booleanClass) tooltip:"Apply transformation matrix = resetXform"
 	checkbox ckb_e_convertToPoly "ConvertToPoly" pos:[9,235] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "convertToPoly") as booleanClass) tooltip:"Convert object to editable poly and delete deadVerts and deadStructs(some kind of cleanup)"
 	
-	groupBox grp_import "Import:" pos:[2,255] width:140 height:170 align:#left	
+	groupBox grp_import "Import:" pos:[2,255] width:140 height:390 align:#left	
 	spinner spn_i_globalScale "Global scale:" pos:[15,275] range:[0,1000000.0,(getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "GlobalScale" as float)] type:#float fieldWidth:50 toolTip:"Import/Export Global Scale" 
 	label lbl_i_convertUnits "ConvertUnits:" pos:[9,295]
 	dropdownlist dd_i_convertUnits "" pos:[78,295] items:#("mm", "cm", "dm", "m", "km", "in", "ft", "mi", "yd") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import" "ConvertUnits" as integer) width: 59 height:16 toolTip:"System units"
 	label lbl_i_upAxis "UpAxis:" pos:[39,320]
 	dropdownlist dd_i_upAxis "" pos:[78,320] items:#("Y", "Z") selection:(getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "UpAxis" as integer) width: 59  height:16	tooltip:"Y or Z"
-	checkbox ckb_i_smoothingGroups " Smoothing groups" pos:[9,345] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "SmoothingGroups") as booleanClass) tooltip:"Disabled - import with custom normals.\nEnabled - import with smoothing groups."
-	checkbox ckb_i_cameras "Cameras" pos:[9,365] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Cameras") as booleanClass) tooltip:"Import cameras"
-	checkbox ckb_i_lights "Lights" pos:[9,385] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Lights") as booleanClass) tooltip:"Import lights"
-	checkbox ckb_i_animation "Animation" pos:[9,405] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Animation") as booleanClass) tooltip:"Import animation"
+	checkbox ckb_i_smoothingGroups " Smoothing groups" pos:[9,345] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "SmoothingGroups") as booleanClass) tooltip:"Disabled - import with custom normals.\nEnabled - import with smoothing groups."	
+	checkbox ckb_i_ResetXForm "ResetXForm" pos:[9,365] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "ResetXForm") as booleanClass) tooltip:"Reset transformation matrix for imported object(s)."	
+	checkbox ckb_i_cameras "Cameras" pos:[9,385] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Cameras") as booleanClass) tooltip:"Import cameras"
+	checkbox ckb_i_lights "Lights" pos:[9,405] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Lights") as booleanClass) tooltip:"Import lights"
+	checkbox ckb_i_animation "Animation" pos:[9,425] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Animation") as booleanClass) tooltip:"Import animation"	
+	checkbox ckb_i_BakeAnimationLayers "BakeAnimationLayers" pos:[9,445] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "BakeAnimationLayers") as booleanClass) tooltip:"BakeAnimationLayers"
+	checkbox ckb_i_FillTimeline "FillTimeline" pos:[9,465] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "FillTimeline") as booleanClass) tooltip:"FillTimeline"
+	checkbox ckb_i_FilterKeyReducer "FilterKeyReducer" pos:[9,485] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "FilterKeyReducer") as booleanClass) tooltip:"FilterKeyReducer"
+	checkbox ckb_i_FilterKeySync "FilterKeySync" pos:[9,505] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "FilterKeySync") as booleanClass) tooltip:"FilterKeySync"
+	checkbox ckb_i_KeepFrameRate "KeepFrameRate" pos:[9,525] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "KeepFrameRate") as booleanClass) tooltip:"KeepFrameRate"
+	checkbox ckb_i_ImportBoneAsDummy "ImportBoneAsDummy" pos:[9,545] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "ImportBoneAsDummy") as booleanClass) tooltip:"ImportBoneAsDummy"
+	checkbox ckb_i_Markers "Markers" pos:[9,565] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Markers") as booleanClass) tooltip:"Markers"
+	checkbox ckb_i_PointCache "PointCache" pos:[9,585] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "PointCache") as booleanClass) tooltip:"PointCache"
+	checkbox ckb_i_Shape "Shape" pos:[9,605] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Shape") as booleanClass) tooltip:"Shape"	
+	checkbox ckb_i_Skin "Skin" pos:[9,625] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Skin") as booleanClass) tooltip:"Skin"
+	
 	
 	on BMAX_PREFS_Rollout rolledUp state do
 	(
 		if state then 
 			(			
-				BMAX_Rollout.height = 570
+				BMAX_Rollout.height = 790
 			)
 			else
 				(
@@ -401,6 +437,50 @@ rollout BMAX_PREFS_Rollout "Preferences" rolledUp: True
 	on ckb_i_animation changed state do 
  	(
  		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Animation" ((ckb_i_animation.state) as string)							
+ 	)
+	on ckb_i_ResetXForm changed state do 
+ 	(
+ 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "ResetXForm" ((ckb_i_ResetXForm.state) as string)							
+ 	)	
+	on ckb_i_BakeAnimationLayers changed state do 
+ 	(
+ 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "BakeAnimationLayers" ((ckb_i_BakeAnimationLayers.state) as string)							
+ 	)	
+	on ckb_i_FillTimeline changed state do 
+ 	(
+ 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "FillTimeline" ((ckb_i_FillTimeline.state) as string)							
+ 	)	
+	on ckb_i_FilterKeyReducer changed state do 
+ 	(
+ 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "FilterKeyReducer" ((ckb_i_FilterKeyReducer.state) as string)							
+ 	)	
+	on ckb_i_FilterKeySync changed state do 
+ 	(
+ 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "FilterKeySync" ((ckb_i_FilterKeySync.state) as string)							
+ 	)	
+	on ckb_i_KeepFrameRate changed state do 
+ 	(
+ 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "KeepFrameRate" ((ckb_i_KeepFrameRate.state) as string)							
+ 	)	
+	on ckb_i_ImportBoneAsDummy changed state do 
+ 	(
+ 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "ImportBoneAsDummy" ((ckb_i_ImportBoneAsDummy.state) as string)							
+ 	)	
+	on ckb_i_Markers changed state do 
+ 	(
+ 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Markers" ((ckb_i_Markers.state) as string)							
+ 	)	
+	on ckb_i_PointCache changed state do 
+ 	(
+ 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "PointCache" ((ckb_i_PointCache.state) as string)							
+ 	)	
+	on ckb_i_Shape changed state do 
+ 	(
+ 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Shape" ((ckb_i_Shape.state) as string)							
+ 	)	
+	on ckb_i_Skin changed state do 
+ 	(
+ 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Skin" ((ckb_i_Skin.state) as string)							
  	)	
 )
 
