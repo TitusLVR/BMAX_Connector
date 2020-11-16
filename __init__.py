@@ -166,15 +166,30 @@ class VIEW3D_PT_BMAX(Panel):
     
     def draw(self, context):
         prefs = bpy.context.preferences.addons['BMAX_Connector'].preferences
-        layout = self.layout       
+
+        layout = self.layout
+        col = layout.column(align=True)  
+        col.scale_y = 1.5      
+        col.operator('bmax.export', icon='EXPORT',text = "Send to Maya/3dsmax")
+        col.operator('bmax.import',icon='IMPORT', text="Get from Maya/3dsmax") 
         
         col = layout.column(align=True)
-        col.prop(prefs,"global_scale_export")
-        col.prop(prefs,"global_scale_import")
-        col.scale_y = 1.5
-        col.operator('bmax.export', icon='EXPORT',text = "Send to Maya/3dsmax")
-        col.operator('bmax.import',icon='IMPORT', text="Get from Maya/3dsmax")
+        box = col.box().column(align=True)
+        if prefs.display_global_scale:
+            row = box.row(align=True)
+            row.prop(prefs, "display_global_scale", text="", icon='TRIA_DOWN')
+        else:
+            row = box.row(align=True)
+            row.prop(prefs, "display_global_scale", text="", icon='TRIA_RIGHT')
+        row.label(text="Preferences")
         
+        if prefs.display_global_scale:
+            box.separator()
+            box = col.box().column(align=True)
+            box.separator()
+            col = box.column(align=True)            
+            col.prop(prefs,"global_scale_export")
+            col.prop(prefs,"global_scale_import")
 class BMAX_AddonPreferences(AddonPreferences):
     bl_idname = __name__    
 
@@ -196,6 +211,8 @@ class BMAX_AddonPreferences(AddonPreferences):
         step=0.1,
         precision=3
     )
+    
+    display_global_scale: bpy.props.BoolProperty(name="Import/Export", description="BMAX Preferences", default=False)
 
     tempFolder : StringProperty(
         name = "BMAX custom exchange folder",
