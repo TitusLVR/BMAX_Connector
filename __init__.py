@@ -48,7 +48,7 @@ def BMAX_Export():
     temp_file_blender = path + "/BMAX_TMP_BLENDER.fbx"       
               
     #---EXPORT---
-    global_scale = bpy.context.preferences.addons['BMAX_Connector'].preferences.global_scale
+    global_scale = bpy.context.preferences.addons['BMAX_Connector'].preferences.global_scale_export
     bpy.ops.export_scene.fbx(filepath = temp_file_blender,
                                  check_existing=True,
                                  filter_glob="*.fbx",                                  
@@ -103,7 +103,7 @@ def BMAX_Import():
        
     #---IMPORT---        
     #---Import FBX---
-    global_scale = bpy.context.preferences.addons['BMAX_Connector'].preferences.global_scale
+    global_scale = bpy.context.preferences.addons['BMAX_Connector'].preferences.global_scale_import
     if os.path.isfile(temp_file_max) == True: 
         bpy.ops.import_scene.fbx(filepath=temp_file_max, 
                                          directory="", 
@@ -169,7 +169,8 @@ class VIEW3D_PT_BMAX(Panel):
         layout = self.layout       
         
         col = layout.column(align=True)
-        col.prop(prefs,"global_scale")
+        col.prop(prefs,"global_scale_export")
+        col.prop(prefs,"global_scale_import")
         col.scale_y = 1.5
         col.operator('bmax.export', icon='EXPORT',text = "Send to Maya/3dsmax")
         col.operator('bmax.import',icon='IMPORT', text="Get from Maya/3dsmax")
@@ -177,9 +178,18 @@ class VIEW3D_PT_BMAX(Panel):
 class BMAX_AddonPreferences(AddonPreferences):
     bl_idname = __name__    
 
-    global_scale: FloatProperty(
-        name="Global scale",
-        description="FBX import/export global scale",
+    global_scale_export: FloatProperty(
+        name="Global Scale Export ",
+        description="FBX export global scale",
+        default=1,
+        min=0.000,
+        max=1000000000.000,
+        step=0.1,
+        precision=3
+    )
+    global_scale_import: FloatProperty(
+        name="Global Scale Import",
+        description="FBX import global scale",
         default=1,
         min=0.000,
         max=1000000000.000,
@@ -198,7 +208,8 @@ class BMAX_AddonPreferences(AddonPreferences):
         layout = self.layout
         col = layout.column(align=True)
         col.label(text = "FBX import/export global scale")
-        col.prop(self, "global_scale")               
+        col.prop(self, "global_scale_export") 
+        col.prop(self, "global_scale_import")              
         col.label(text = "Select custom BMAX exchange folder(keep it empty for default BMAX folder)")
         col.prop(self, "tempFolder") 
 
