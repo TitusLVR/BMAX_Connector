@@ -1,7 +1,7 @@
 bl_info = {
     "name": "BMAX Connector",
     "author": "Titus Lavrov / Email: Titus.mailbox@gmail.com",
-    "version": (0, 1, 1),
+    "version": (0, 1, 2),
     "blender": (2, 80, 0),
     "location": "View3D > Toolbar and View3D",
     "warning": "",
@@ -32,22 +32,49 @@ from bpy.props import (
         )
 #Functions
 
+def BMAX_Add_Custom_prop():
+    prefs = bpy.context.preferences.addons['BMAX_Connector'].preferences
+    for ob in bpy.context.view_layer.objects.selected:
+        ob["BMAX"] = (ob.location, ob.rotation_euler, ob.scale)
+        if prefs.export_reset_location:
+            ob.location = (0,0,0)
+        if prefs.export_reset_rotation:
+            ob.rotation_euler = (0,0,0)
+        if prefs.export_reset_scale:
+            ob.scale = (1,1,1)
+
+def BMAX_Delete_Custom_prop():
+    prefs = bpy.context.preferences.addons['BMAX_Connector'].preferences
+    for ob in bpy.context.view_layer.objects.selected:
+        if "BMAX" in ob.keys():
+            if prefs.export_reset_location:
+                ob.location = ob["BMAX"][0]
+            if prefs.export_reset_rotation:
+                ob.rotation_euler = ob["BMAX"][1]
+            if prefs.export_reset_scale:
+                ob.scale = ob["BMAX"][2]
+            del ob["BMAX"] 
+
+
 def BMAX_Export(): 
-    
     #---Variables---
-    customPath = bpy.context.preferences.addons['BMAX_Connector'].preferences.tempFolder
+    prefs = bpy.context.preferences.addons['BMAX_Connector'].preferences     
+    customPath = prefs.tempFolder
     if customPath == '':            
         path = "" + tempfile.gettempdir() + "\\BMAX"
         path = '/'.join(path.split('\\'))
         if not os.path.exists(path):
             os.makedirs(path)
     else:
-        path = bpy.context.preferences.addons['BMAX_Connector'].preferences.tempFolder
+        path = prefs.tempFolder
     
-    temp_file_max = path + "/BMAX_TMP_MAX.fbx"
     temp_file_blender = path + "/BMAX_TMP_BLENDER.fbx"       
               
     #---EXPORT---
+    if prefs.export_reset_location or prefs.export_reset_rotation or prefs.export_reset_scale:
+        BMAX_Add_Custom_prop()
+
+
     global_scale = bpy.context.preferences.addons['BMAX_Connector'].preferences.global_scale_export
     bpy.ops.export_scene.fbx(filepath = temp_file_blender,
                                  check_existing=True,
@@ -84,8 +111,10 @@ def BMAX_Export():
                                  use_metadata=False, 
                                  axis_forward='Y', 
                                  axis_up='Z'
-                                )       
-                     
+                                )
+    
+    if prefs.export_reset_location or prefs.export_reset_rotation or prefs.export_reset_scale:
+        BMAX_Delete_Custom_prop()
 
 def BMAX_Import():    
     #---Variables---         
@@ -99,8 +128,6 @@ def BMAX_Import():
         path = bpy.context.preferences.addons['BMAX_Connector'].preferences.tempFolder
     
     temp_file_max = path + "/BMAX_TMP_MAX.fbx"
-    temp_file_blender = path + "/BMAX_TMP_BLENDER.fbx"            
-       
     #---IMPORT---        
     #---Import FBX---
     global_scale = bpy.context.preferences.addons['BMAX_Connector'].preferences.global_scale_import
@@ -185,11 +212,31 @@ class VIEW3D_PT_BMAX(Panel):
         
         if prefs.display_global_scale:
             box.separator()
-            box = col.box().column(align=True)
-            box.separator()
-            col = box.column(align=True)            
-            col.prop(prefs,"global_scale_export")
-            col.prop(prefs,"global_scale_import")
+# Export preferences box
+            box1 = col.box().column(align=True)
+            col1 = box1.column(align=True)            
+            col1.label(text="Export:") 
+# Nested export preferences box
+            box1_1 = col1.box().column(align=True)
+            col1_1 = box1_1.column(align=True)
+            
+            col1_1.prop(prefs,"export_reset_location")
+            col1_1.prop(prefs,"export_reset_rotation")
+            col1_1.prop(prefs,"export_reset_scale")
+
+            col1_1.prop(prefs,"global_scale_export")
+
+# Import preferences box
+            box2 = col.box().column(align=True)
+            col2 = box2.column(align=True)
+            col2.label(text="Import:")
+# Nested import preferences box
+            box2_1 = col2.box().column(align=True)
+            col2_1 = box2_1.column(align=True)
+             
+            col2_1.prop(prefs,"global_scale_import")
+            
+
 class BMAX_AddonPreferences(AddonPreferences):
     bl_idname = __name__    
 
@@ -213,6 +260,9 @@ class BMAX_AddonPreferences(AddonPreferences):
     )
     
     display_global_scale: bpy.props.BoolProperty(name="Import/Export", description="BMAX Preferences", default=False)
+    export_reset_location: bpy.props.BoolProperty(name="Reset Location", description="Reset object location on export, and restore after", default=False)
+    export_reset_rotation: bpy.props.BoolProperty(name="Reset Rotation", description="Reset object rotation on export, and restore after", default=False)
+    export_reset_scale: bpy.props.BoolProperty(name="Reset Scale", description="Reset object scale on export, and restore after", default=False)
 
     tempFolder : StringProperty(
         name = "BMAX custom exchange folder",
