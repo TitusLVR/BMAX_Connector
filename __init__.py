@@ -1,7 +1,7 @@
 bl_info = {
     "name": "BMAX Connector",
     "author": "Titus Lavrov / Email: Titus.mailbox@gmail.com",
-    "version": (0, 1, 2),
+    "version": (0, 1, 3),
     "blender": (2, 80, 0),
     "location": "View3D > Toolbar and View3D",
     "warning": "",
