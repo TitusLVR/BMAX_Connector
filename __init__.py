@@ -144,7 +144,7 @@ def BMAX_Import():
                                          decal_offset=0, 
                                          use_anim=False, 
                                          anim_offset=1, 
-                                         use_custom_props=False, 
+                                         use_custom_props=True, 
                                          use_custom_props_enum_as_string=False, 
                                          ignore_leaf_bones=False, 
                                          force_connect_children=False, 
