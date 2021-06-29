@@ -149,6 +149,9 @@ fn BMAX_Import fileName =
         local BMAX_Imp_PointCache = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "PointCache" as booleanClass
 		local BMAX_Imp_Shape = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Shape" as booleanClass
 		local BMAX_Imp_Skin = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Skin" as booleanClass
+
+		local BMAX_Imp_RandomWireColor = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "WireRandomColor" as booleanClass
+		local BMAX_Imp_WireColor = (execute (getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "WireColor")) as color
 		
 		
 		pluginManager.loadClass FBXIMP			
@@ -185,7 +188,15 @@ fn BMAX_Import fileName =
 		B_Objs = for o in selection where (isKindOf o GeometryClass and canConvertTo o Editable_Mesh) collect o
 		if B_Objs.count != 0 do
 			(
-				for o in B_Objs do (o.wirecolor = (color 0 0 0))
+				if BMAX_Imp_RandomWireColor then 
+					(
+						for obj in $ do obj.wirecolor = color (random 0 255) (random 0 255) (random 0 255)
+					)
+					else 
+						(
+							for o in B_Objs do (o.wirecolor = BMAX_Imp_WireColor)
+						)
+			
 				if BMAX_Imp_ResetXForm == True do 
 					(
 						for o in B_Objs do
