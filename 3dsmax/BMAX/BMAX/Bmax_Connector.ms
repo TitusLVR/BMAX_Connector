@@ -44,6 +44,7 @@ rollout BMAX_Rollout "BMAX Connector"
 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Position" "PosY" ( (NewWinPos[2]  as integer ) as string)		
 		format "BMAX Connector: Closed!\n"
 	)
+	
 	on BMAX_Rollout rbuttondblclk val do
 	(
 		BMAX = getINISetting BMAX_INI "Path" "BMAX"
@@ -58,8 +59,8 @@ rollout BMAX_Rollout "BMAX Connector"
 				messageBox "Default path restored" title:"Warning" beep:off	
 			)			
 	)
-
 )
+
 rollout BMAX_PREFS_Rollout "Preferences" rolledUp: True
 (	
 	groupBox grp_export "Export:" pos:[2,2] width:140 height:253 align:#left
@@ -87,7 +88,7 @@ rollout BMAX_PREFS_Rollout "Preferences" rolledUp: True
 	label lbl_i_upAxis "UpAxis:" pos:[39,320]
 	dropdownlist dd_i_upAxis "" pos:[78,320] items:#("Y", "Z") selection:(getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "UpAxis" as integer) width: 59  height:16	tooltip:"Y or Z"
 	
-	colorpicker colorpicker_i_wireColor "Wireframe Color" pos:[9,345] color:(execute (getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "WireColor")) alpha:false fieldWidth:46 height:18 title:"BMAX-IMPORT-Wireframe Color" toolTip:"Wireframe color for imported objects" enabled:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "WireColorEnabled") as booleanClass) 
+	colorpicker colorpicker_i_wireColor "Wireframe Color" pos:[9,345] color:(execute(getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "WireColor")) alpha:false fieldWidth:46 height:18 title:"BMAX-IMPORT-Wireframe Color" toolTip:"Wireframe color for imported objects" enabled:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "WireColorEnabled") as booleanClass) 
 	
 	checkbox ckb_i_wireColorRandom "Random wire color" pos:[9,365] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "WireRandomColor") as booleanClass) tooltip:"Use random wire color"	
 	
@@ -172,8 +173,6 @@ rollout BMAX_PREFS_Rollout "Preferences" rolledUp: True
  		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Export" "convertToPoly" ((ckb_e_convertToPoly.state) as string)							
  	)
 	
-	
-	
 	on spn_i_globalScale changed val do 
 	(
 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "GlobalScale" ((spn_i_globalScale.value) as string)							
@@ -206,10 +205,8 @@ rollout BMAX_PREFS_Rollout "Preferences" rolledUp: True
 	
 	on colorpicker_i_wireColor changed val do
 	(		
-		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "WireColor" (([colorpicker_i_wireColor.color.red,colorpicker_i_wireColor.color.green,colorpicker_i_wireColor.color.blue]) as string)
-	)
-	
-	
+		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "WireColor" (([colorpicker_i_wireColor.color.red, colorpicker_i_wireColor.color.green, colorpicker_i_wireColor.color.blue]) as string)
+	)	
 	
 	on ckb_i_smoothingGroups changed state do 
  	(

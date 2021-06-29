@@ -151,7 +151,7 @@ fn BMAX_Import fileName =
 		local BMAX_Imp_Skin = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "Skin" as booleanClass
 
 		local BMAX_Imp_RandomWireColor = getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "WireRandomColor" as booleanClass
-		local BMAX_Imp_WireColor = (execute (getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "WireColor")) as color
+		local BMAX_Imp_WireColor = (execute(getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import" "WireColor")) as color
 		
 		
 		pluginManager.loadClass FBXIMP			
@@ -190,7 +190,7 @@ fn BMAX_Import fileName =
 			(
 				if BMAX_Imp_RandomWireColor then 
 					(
-						for obj in $ do obj.wirecolor = color (random 0 255) (random 0 255) (random 0 255)
+						for o in B_Objs do o.wirecolor = color (random 0 255) (random 0 255) (random 0 255)
 					)
 					else 
 						(
@@ -243,6 +243,6 @@ fn BMAX_Init =
             )	
         )
         setDialogPos BMAX_Rollout [(BMAX_posX),(BMAX_posY)]
-        format "BMAX Connector: Script version:019 - loaded, have fun!!! \n"
+        format "BMAX Connector: Script version:020 - loaded, have fun!!! \n"
         format "BMAX Connector: Working folder: %,  if you want to change folder - - - RightMouseButton DoubleClick on BMAX window - - -\n" BMAX	
     ) 
