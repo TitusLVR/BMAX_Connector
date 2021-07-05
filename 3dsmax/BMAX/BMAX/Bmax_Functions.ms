@@ -205,11 +205,10 @@ fn BMAX_Import fileName =
 							convertToPoly o
 						)
 					)
-			)
-		
+			)		
 	)	
 	
-fn BMAX_Init = 
+fn BMAX_Init POS_X POS_Y = 
     (
         local theINIFile = "$userscripts\\BMAX\\bmax.ini"
         if doesFileExist theINIFile do
@@ -242,7 +241,7 @@ fn BMAX_Init =
                 setINISetting theINIFile "Path" "BMAX" BMAX
             )	
         )
-        setDialogPos BMAX_Rollout [(BMAX_posX),(BMAX_posY)]
+        setDialogPos BMAX_Rollout [(POS_X),(POS_Y)]
         format "BMAX Connector: Script version:020 - loaded, have fun!!! \n"
         format "BMAX Connector: Working folder: %,  if you want to change folder - - - RightMouseButton DoubleClick on BMAX window - - -\n" BMAX	
     ) 

@@ -13,8 +13,7 @@ rollout BMAX_Rollout "BMAX Connector"
 	
 	subrollout prefs_frame "Preferences" height:715 width:156 pos:[2,115]	
 	
-	local BMAX_posX =  getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Position" "PosX" as float 	
-	local BMAX_posY =  getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Position" "PosY" as float	
+	
 	local MaxVer = ((maxVersion())[1])	  
 	local BMAX_INI = "$userscripts\\BMAX\\bmax.ini"	
 	
@@ -22,7 +21,9 @@ rollout BMAX_Rollout "BMAX Connector"
 	
 	on BMAX_Rollout open do 
 	(
-		BMAX_Init()	
+		BMAX_posX =  getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Position" "PosX" as float 	
+		BMAX_posY =  getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Position" "PosY" as float	
+		BMAX_Init BMAX_posX BMAX_posY	
 	)	
 		
 	on btn_1 pressed do 		
@@ -41,7 +42,7 @@ rollout BMAX_Rollout "BMAX Connector"
 	(	
 		NewWinPos = getDialogpos BMAX_Rollout		
 		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Position" "PosX" ( (NewWinPos[1]  as integer ) as string)
-		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Position" "PosY" ( (NewWinPos[2]  as integer ) as string)		
+		setINISetting ("$userscripts\\BMAX\\bmax.ini") "Position" "PosY" ( (NewWinPos[2]  as integer ) as string)
 		format "BMAX Connector: Closed!\n"
 	)
 	
