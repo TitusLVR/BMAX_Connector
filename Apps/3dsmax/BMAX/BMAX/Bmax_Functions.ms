@@ -245,3 +245,102 @@ fn BMAX_Init POS_X POS_Y =
         format "BMAX Connector: Script version:020 - loaded, have fun!!! \n"
         format "BMAX Connector: Working folder: %,  if you want to change folder - - - RightMouseButton DoubleClick on BMAX window - - -\n" BMAX	
     ) 
+
+fn BMAX_Export_USD filename = 
+	(		
+		-- USD EXPORT
+		local BMAX_USD_Exp_Meshes = (getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Meshes" as booleanClass)
+		local BMAX_USD_Exp_Lights = (getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Lights" as booleanClass)
+		local BMAX_USD_Exp_Cameras = (getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Cameras" as booleanClass)
+		local BMAX_USD_Exp_FileFormat = execute(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "FileFormat_sys" as string)
+		local BMAX_USD_Exp_Normals = execute(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Normals_sys" as string)
+		local BMAX_USD_Exp_UpAxis = execute(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "UpAxis_sys" as string)
+		local BMAX_USD_Exp_BakeObjectOffsetTransform = (getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "BakeObjectOffsetTransform" as booleanClass)
+		local BMAX_USD_Exp_PreserveEdgeOrientation = (getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "PreserveEdgeOrientation" as booleanClass)
+		
+		
+		-- set up the export options
+		opts = USDExporter.CreateOptions()
+		-- we can reset the options to ensure defaults are set
+		opts.reset()
+		-- .LogPath : string : Read|Write
+		opts.LogPath = ((getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Path" "BMAX") + ("\BMAX_TMP_MAX.log"))
+		-- LogLevel enums: {#off|#info|#warn|#error}
+		opts.LogLevel = #error
+		-- .Meshes : boolean : Read|Write
+		opts.Meshes = BMAX_USD_Exp_Meshes
+		-- .Lights : boolean : Read|Write
+		opts.Lights = BMAX_USD_Exp_Lights
+		-- .Cameras : boolean : Read|Write
+		opts.Cameras = BMAX_USD_Exp_Cameras
+		-- .FileFormat : enum : Read|Write
+		-- FileFormat enums: {#ascii|#binary|#usdz}
+		opts.FileFormat = BMAX_USD_Exp_FileFormat
+		-- .Normals : enum : Read|Write
+		-- Normals enums: {#none|#asAttribute|#asPrimvar}
+		opts.Normals = BMAX_USD_Exp_Normals
+		-- .UpAxis : enum : Read|Write
+		-- UpAxis enums: {#y|#z}
+		opts.UpAxis = BMAX_USD_Exp_UpAxis
+		-- .BakeObjectOffsetTransform : boolean : Read|Write
+		opts.BakeObjectOffsetTransform = BMAX_USD_Exp_BakeObjectOffsetTransform
+		-- .PreserveEdgeOrientation : boolean : Read|Write
+		opts.PreserveEdgeOrientation = BMAX_USD_Exp_PreserveEdgeOrientation
+		
+		-- unregister any callbacks:		
+		opts.UnregisterCallbacks id:#exportcallback
+		-- register a callback for successful export:
+		fn exportcallback stageId conversionInfo filename options = (format "export succeeded stage:% conversionInfo:% " stageId conversionInfo)
+		
+		opts.RegisterCallback exportcallback #exportcallback #onExportComplete
+		-- EXPORT
+		-- ExportFile - no automatic redraw after invoked
+		-- exportOptions default value: undefined
+		-- contentSource enums: {#all|#selected|#nodeList}
+		-- contentSource default value: #all
+		-- nodeList default value: #()
+		-- nodeList is In and Out parameter
+		USDExporter.exportFile filename exportOptions:opts contentSource:#selected nodeList:#()
+		-- unregister the callback:
+		opts.UnregisterCallbacks id:#exportcallback	
+	)
+
+fn BMAX_Import_USD filename = 
+	(
+		-- USD import
+		local BMAX_USD_Imp_InitialLoadSet = execute(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "InitialLoadSet_sys" as string)
+		local BMAX_USD_Imp_MetaData = execute(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "MetaData_sys" as string)
+		local BMAX_USD_Imp_TimeCode = execute(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "TimeCode_sys" as string)
+		local BMAX_USD_Imp_TimeCodeValue = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "TimeCodeValue" as integer
+		-- set up the import options
+		opts = USDImporter.CreateOptions()
+		-- we can reset the options to ensure defaults are set
+		opts.reset()
+		-- .LogPath : string : Read|Write
+		opts.LogPath = ((getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Path" "BMAX") + ("\BMAX_TMP_BLENDER.log"))
+		-- LogLevel enums: {#off|#info|#warn|#error}
+		opts.LogLevel = #error
+		-- .InitialLoadSet : enum : Read|Write
+		--  InitialLoadSet enums: {#loadAll|#loadNone}
+		opts.InitialLoadSet = BMAX_USD_Imp_InitialLoadSet as string
+		-- .StageMask : string array : Read|Write
+		-- .MetaData : enum array : Read|Write
+		-- MetaData enums: {#kind|#purpose|#hidden}
+		opts.MetaData = BMAX_USD_Imp_MetaData
+		-- .TimeCode : enum : Read|Write
+		-- TimeCode enums: {#startTime|#endTime|#explicit}
+		opts.TimeCode = BMAX_USD_Imp_TimeCode
+		-- .TimeCodeValue : value : Read|Write
+		opts.TimeCodeValue = BMAX_USD_Imp_TimeCodeValue
+
+		-- unregister any callbacks:
+		opts.UnregisterCallbacks id:#importcallback
+		-- register a callback for successful import:
+		fn importcallback stageId conversionInfo filename options = (format "import succeeded stage:% conversionInfo:% " stageId conversionInfo)
+		opts.RegisterCallback importcallback #importcallback #onImportComplete
+		
+		-- IMPORT
+		USDImporter.importFile filename importOptions:opts
+		-- unregister the callback:
+		opts.UnregisterCallbacks id:#importcallback	
+	)
