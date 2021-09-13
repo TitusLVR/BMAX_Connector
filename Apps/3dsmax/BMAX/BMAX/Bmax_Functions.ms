@@ -250,6 +250,7 @@ fn BMAX_Export_USD filename =
 	(		
 		-- USD EXPORT
 		local BMAX_USD_Exp_Meshes = (getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Meshes" as booleanClass)
+	    local BMAX_USD_Exp_Materials = (getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Materials" as booleanClass)
 		local BMAX_USD_Exp_Lights = (getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Lights" as booleanClass)
 		local BMAX_USD_Exp_Cameras = (getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Cameras" as booleanClass)
 		local BMAX_USD_Exp_FileFormat = execute(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "FileFormat_sys" as string)
@@ -269,6 +270,8 @@ fn BMAX_Export_USD filename =
 		opts.LogLevel = #error
 		-- .Meshes : boolean : Read|Write
 		opts.Meshes = BMAX_USD_Exp_Meshes
+		-- .Materials : boolean : Read|Write
+		opts.Materials = BMAX_USD_Exp_Materials
 		-- .Lights : boolean : Read|Write
 		opts.Lights = BMAX_USD_Exp_Lights
 		-- .Cameras : boolean : Read|Write
@@ -311,7 +314,8 @@ fn BMAX_Import_USD filename =
 		local BMAX_USD_Imp_InitialLoadSet = execute(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "InitialLoadSet_sys" as string)
 		local BMAX_USD_Imp_MetaData = execute(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "MetaData_sys" as string)
 		local BMAX_USD_Imp_TimeCode = execute(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "TimeCode_sys" as string)
-		local BMAX_USD_Imp_TimeCodeValue = getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "TimeCodeValue" as integer
+		local BMAX_USD_Imp_TimeCodeValue = (getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "TimeCodeValue" as integer)
+		local BMAX_USD_Imp_Materials = (getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "Materials" as booleanClass)
 		-- set up the import options
 		opts = USDImporter.CreateOptions()
 		-- we can reset the options to ensure defaults are set
@@ -323,6 +327,8 @@ fn BMAX_Import_USD filename =
 		-- .InitialLoadSet : enum : Read|Write
 		--  InitialLoadSet enums: {#loadAll|#loadNone}
 		opts.InitialLoadSet = BMAX_USD_Imp_InitialLoadSet as string
+		-- .Materials : boolean : Read|Write
+		opts.Materials = BMAX_USD_Imp_Materials
 		-- .StageMask : string array : Read|Write
 		-- .MetaData : enum array : Read|Write
 		-- MetaData enums: {#kind|#purpose|#hidden}

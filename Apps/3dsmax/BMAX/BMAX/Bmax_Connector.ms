@@ -281,32 +281,34 @@ rollout BMAX_Rollout "BMAX Connector"
 	rollout BMAX_PREFS_USD_Rollout "Prefs USD" rolledUp: True
 	(
 		groupBox grp_export "Export:" pos:[2,2] width:140 height:195 align:#left		
-		checkbox ckb_e_usd_meshes "Meshes" pos:[9,20] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Meshes") as booleanClass) tooltip:"Export Meshes" 
-		checkbox ckb_e_usd_lights "Lights" pos:[9,40] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Lights") as booleanClass) tooltip:"Export Lights" 
-		checkbox ckb_e_usd_cameras "Cameras" pos:[9,60] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Cameras") as booleanClass) tooltip:"Export Cameras"		
+		checkbox ckb_e_usd_meshes "Meshes" pos:[9,20] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Meshes") as booleanClass) tooltip:"If checked, mesh geometry is extracted from the scene for USD export"
+		checkbox ckb_e_usd_materials "Materials" pos:[75,20] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Materials") as booleanClass) tooltip:"If checked, shading data is extracted from the scene for USD export"
+		checkbox ckb_e_usd_lights "Lights" pos:[9,40] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Lights") as booleanClass) tooltip:"If checked, lights are extracted from the scene for USD export" 
+		checkbox ckb_e_usd_cameras "Cameras" pos:[9,60] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Cameras") as booleanClass) tooltip:"If checked, cameras are extracted from the scene for USD export"		
 		label lbl_FileFormat "Format:" pos:[20,82]
-		dropdownlist dd_e_usd_fileFormat "" pos:[60,80] items:#("#ascii","#binary","#usdz") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "FileFormat" as integer) width:80 height:16 toolTip:"USD File format"
+		dropdownlist dd_e_usd_fileFormat "" pos:[60,80] items:#("#ascii","#binary","#usdz") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "FileFormat" as integer) width:80 height:16 toolTip:"Binary (.usdc) is optimized for machine-readability.\nASCII (.usda) is optimized for human-readability.\nUSDZ (.usdz) is optimized for asset packaging."
 		label lbl_Normals "Normals:" pos:[16,107]
-		dropdownlist dd_e_usd_Normals "" pos:[60,105] items:#("#none","#asAttribute","#asPrimvar") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Normals" as integer) width:80 height:16 toolTip:"Normals as ..."
+		dropdownlist dd_e_usd_Normals "" pos:[60,105] items:#("#none","#asAttribute","#asPrimvar") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Normals" as integer) width:80 height:16 toolTip:"As primvar: Exports normals as USD primvars (recommended).\nAs attribute: Exports surface normals as attributes.\nAs none: Surface normals are not exported."
 		label lbl_UpAxis "UpAxis:" pos:[20,132]
-		dropdownlist dd_e_usd_upAxis "" pos:[60,130] items:#("#y","#z") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "UpAxis" as integer) width:80 height:16 toolTip:"Up Axis"
-		checkbox ckb_e_usd_BakeObjectOffsetTransform "Bake Transform" pos:[9,155] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "BakeObjectOffsetTransform") as booleanClass) tooltip:"Bake Object Offset Transform" 
-		checkbox ckb_e_usd_PreserveEdgeOrientation "Preserve Edges" pos:[9,175] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "PreserveEdgeOrientation") as booleanClass) tooltip:"Preserve Edge Orientation (triangles only)" 
+		dropdownlist dd_e_usd_upAxis "" pos:[60,130] items:#("#y","#z") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "UpAxis" as integer) width:80 height:16 toolTip:"Select the upward axis of orientation for your USD scene."
+		checkbox ckb_e_usd_BakeObjectOffsetTransform "Bake Transform" pos:[9,155] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "BakeObjectOffsetTransform") as booleanClass) tooltip:"If checked, offset transformations of an object will be baked into their geometry."
+		checkbox ckb_e_usd_PreserveEdgeOrientation "Preserve Edges" pos:[9,175] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "PreserveEdgeOrientation") as booleanClass) tooltip:"If checked, all mesh faces in the scene to be exported will be made planar.\nCurved faces in your scene will be split into a collection of planar faces upon export." 
 		
-		groupBox grp_import "Import:" pos:[2,200] width:140 height:120 align:#left		
+		groupBox grp_import "Import:" pos:[2,200] width:160 height:135 align:#left		
 		label lbl_InitialLoadSet "LoadSet:" pos:[15,222]
 		dropdownlist dd_i_usd_InitialLoadSet "" pos:[60,220] items:#("#loadAll","#loadNone") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "InitialLoadSet" as integer) width:80 height:16 toolTip:"Load Set"
 		label lbl_MetaData "MetaData:" pos:[8,248]
 		dropdownlist dd_i_usd_MetaData"" pos:[60,245] items:#("#kind","#purpose","#hidden") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "MetaData" as integer) width:80 height:16 toolTip:"Meta Data"
 		label lbl_TimeCode "TimeCode:" pos:[8,272]
-		dropdownlist dd_i_usd_TimeCode "" pos:[60,270] items:#("#startTime","#endTime","#explicit") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "TimeCode" as integer) width:80 height:16 toolTip:"Time Code"
-		spinner spn_i_TimeCodeValue "TimeCode Value:" pos:[8,295] range:[-10000000,10000000,(getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "TimeCodeValue" as float)] type:#integer fieldWidth:40 toolTip:"Time Code Value" 
+		dropdownlist dd_i_usd_TimeCode "" pos:[60,270] items:#("#startTime","#endTime","#explicit") selection:(getINISetting  ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "TimeCode" as integer) width:80 height:16 toolTip:"Select the time code at which animation data is imported into your scene."
+		spinner spn_i_TimeCodeValue "TimeCode Value:" pos:[8,295] range:[-10000000,10000000,(getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "TimeCodeValue" as float)] type:#integer fieldWidth:40 toolTip:"Choose Explicit to specify a time code value for import."
+		checkbox ckb_i_usd_materials "Materials" pos:[9,315] checked:((getINISetting ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "Materials") as booleanClass) tooltip:"If selected, shading data is extracted from the USD file for import."
 		
 		on BMAX_PREFS_USD_Rollout rolledUp state do
 		(
 			if state then
 				(
-					BMAX_Rollout.height = 480
+					BMAX_Rollout.height = 495
 				)
 				else
 					(
@@ -317,6 +319,10 @@ rollout BMAX_Rollout "BMAX Connector"
 		on ckb_e_usd_meshes changed state do 
 		(
 			setINISetting ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Meshes" ((ckb_e_usd_meshes.state) as string)							
+		)
+		on ckb_e_usd_meshes changed state do 
+		(
+			setINISetting ("$userscripts\\BMAX\\bmax.ini") "Export_USD" "Materials" ((ckb_e_usd_meshes.state) as string)							
 		)
 		on ckb_e_usd_lights changed state do 
 		(
@@ -369,6 +375,10 @@ rollout BMAX_Rollout "BMAX Connector"
 		on spn_i_TimeCodeValue changed val do 
 		(
 			setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "TimeCodeValue" ((spn_i_TimeCodeValue.value) as string)							
+		)
+		on ckb_i_usd_materials changed state do 
+		(
+			setINISetting ("$userscripts\\BMAX\\bmax.ini") "Import_USD" "Materials" ((ckb_e_usd_meshes.state) as string)							
 		)
 		
 	)
